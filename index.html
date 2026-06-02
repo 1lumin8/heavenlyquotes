@@ -53,6 +53,17 @@
         <div class="quote-grid" id="quoteGrid" aria-live="polite"></div>
       </section>
 
+      <section class="saved-panel" aria-labelledby="savedTitle">
+        <div class="saved-header">
+          <div>
+            <p class="eyebrow">Saved</p>
+            <h2 id="savedTitle">Saved quotes</h2>
+          </div>
+          <button class="secondary-button compact-button" id="clearSavedBtn" type="button">Clear saved</button>
+        </div>
+        <div class="saved-list" id="savedList"></div>
+      </section>
+
       <aside class="category-strip" aria-label="Available quote categories">
         <div>
           <p class="eyebrow">Categories in the mix</p>
@@ -67,11 +78,12 @@
         <div class="quote-card-top">
           <span class="category"></span>
           <span class="source"></span>
+          <button class="save-quote" type="button" aria-label="Save quote">Save</button>
         </div>
         <blockquote></blockquote>
       </article>
     </template>
 
-    <script src="script.js?v=7"></script>
+    <script src="script.js?v=8"></script>
   </body>
 </html>

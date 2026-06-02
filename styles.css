@@ -165,19 +165,22 @@ main {
 }
 
 .issue-panel,
-.category-strip {
+.category-strip,
+.saved-panel {
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(222, 216, 205, 0.72);
   border-radius: 18px;
   box-shadow: 0 18px 45px rgba(22, 32, 38, 0.06);
 }
 
-.issue-panel {
+.issue-panel,
+.saved-panel {
   padding: 28px;
 }
 
 .issue-header,
-.category-strip {
+.category-strip,
+.saved-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -255,6 +258,23 @@ main {
   display: none;
 }
 
+.save-quote {
+  margin-left: auto;
+  border: 1px solid rgba(47, 97, 86, 0.22);
+  border-radius: 999px;
+  background: rgba(244, 239, 229, 0.76);
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 7px 10px;
+}
+
+.save-quote.saved {
+  background: var(--accent-dark);
+  color: #fff;
+}
+
 blockquote {
   margin: 0;
   font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Inter, ui-sans-serif, system-ui, sans-serif;
@@ -272,6 +292,61 @@ blockquote {
 
 .category-strip {
   padding: 22px 24px;
+}
+
+.saved-header {
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.compact-button {
+  min-height: 38px;
+  padding: 0 14px;
+  font-size: 0.86rem;
+}
+
+.saved-list {
+  display: grid;
+  gap: 10px;
+}
+
+.saved-empty {
+  color: var(--muted);
+  font-size: 0.96rem;
+}
+
+.saved-item {
+  border: 1px solid rgba(225, 219, 209, 0.82);
+  border-radius: 14px;
+  background: rgba(255, 253, 249, 0.86);
+  padding: 14px 14px 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.saved-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--accent-dark);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.saved-item p {
+  color: var(--ink);
+  font-size: 0.96rem;
+  line-height: 1.55;
+}
+
+.remove-saved {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 4px 0;
 }
 
 .category-pills {
@@ -299,7 +374,8 @@ blockquote {
 
   .topbar,
   .issue-header,
-  .category-strip {
+  .category-strip,
+  .saved-header {
     align-items: stretch;
     flex-direction: column;
   }

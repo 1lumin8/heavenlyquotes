@@ -1265,10 +1265,13 @@ const issueDate = document.querySelector("#issueDate");
 const generateBtn = document.querySelector("#generateBtn");
 const shuffleTop = document.querySelector("#shuffleTop");
 const copyBtn = document.querySelector("#copyBtn");
+const clearSavedBtn = document.querySelector("#clearSavedBtn");
+const savedList = document.querySelector("#savedList");
 const pageTitle = document.querySelector("#pageTitle");
 const issueTitle = document.querySelector("#issueTitle");
 const sourceTitle = document.querySelector("#sourceTitle");
 const tabButtons = document.querySelectorAll("[data-collection]");
+const savedQuotesStorageKey = "words-of-the-day-saved-quotes-v1";
 
 let activeCollectionKey = "jss";
 
@@ -1322,6 +1325,46 @@ function saveShownQuoteIds(storageKey, ids) {
   localStorage.setItem(storageKey, JSON.stringify([...new Set(ids)]));
 }
 
+function getSavedQuotes() {
+  try {
+    return JSON.parse(localStorage.getItem(savedQuotesStorageKey)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSavedQuotes(savedQuotes) {
+  localStorage.setItem(savedQuotesStorageKey, JSON.stringify(savedQuotes));
+}
+
+function isQuoteSaved(quote) {
+  const id = quoteId(quote);
+  return getSavedQuotes().some((savedQuote) => savedQuote.id === id);
+}
+
+function toggleSavedQuote(quote) {
+  const id = quoteId(quote);
+  const savedQuotes = getSavedQuotes();
+  const existingIndex = savedQuotes.findIndex((savedQuote) => savedQuote.id === id);
+
+  if (existingIndex >= 0) {
+    savedQuotes.splice(existingIndex, 1);
+  } else {
+    savedQuotes.unshift({
+      id,
+      collection: activeCollection().copyLabel,
+      category: quote.category,
+      source: quote.source,
+      text: quote.text,
+      savedAt: new Date().toISOString()
+    });
+  }
+
+  saveSavedQuotes(savedQuotes);
+  renderSavedQuotes();
+  renderQuotes(window.currentIssue || []);
+}
+
 function uniqueCategoryCount(items) {
   return new Set(items.map((quote) => quote.category)).size;
 }
@@ -1331,10 +1374,58 @@ function renderQuotes(selectedQuotes) {
 
   selectedQuotes.forEach((quote) => {
     const card = template.content.cloneNode(true);
+    const saveButton = card.querySelector(".save-quote");
     card.querySelector(".category").textContent = quote.category;
     card.querySelector(".source").textContent = quote.source;
     card.querySelector("blockquote").textContent = quote.text;
+    saveButton.textContent = isQuoteSaved(quote) ? "Saved" : "Save";
+    saveButton.classList.toggle("saved", isQuoteSaved(quote));
+    saveButton.setAttribute("aria-label", `${saveButton.textContent} quote`);
+    saveButton.addEventListener("click", () => toggleSavedQuote(quote));
     quoteGrid.appendChild(card);
+  });
+}
+
+function renderSavedQuotes() {
+  const savedQuotes = getSavedQuotes();
+  savedList.replaceChildren();
+
+  if (savedQuotes.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "saved-empty";
+    empty.textContent = "Saved quotes will appear here.";
+    savedList.appendChild(empty);
+    clearSavedBtn.hidden = true;
+    return;
+  }
+
+  clearSavedBtn.hidden = false;
+  savedQuotes.forEach((quote) => {
+    const item = document.createElement("article");
+    item.className = "saved-item";
+
+    const top = document.createElement("div");
+    top.className = "saved-item-top";
+
+    const label = document.createElement("span");
+    label.textContent = `${quote.collection} · ${quote.category}`;
+
+    const removeButton = document.createElement("button");
+    removeButton.className = "remove-saved";
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+    removeButton.addEventListener("click", () => {
+      saveSavedQuotes(getSavedQuotes().filter((savedQuote) => savedQuote.id !== quote.id));
+      renderSavedQuotes();
+      renderQuotes(window.currentIssue || []);
+    });
+
+    const text = document.createElement("p");
+    text.textContent = quote.text;
+
+    top.append(label, removeButton);
+    item.append(top, text);
+    savedList.appendChild(item);
   });
 }
 
@@ -1369,6 +1460,7 @@ function renderCollectionFrame() {
   });
 
   renderCategories();
+  renderSavedQuotes();
   refreshIssue();
 }
 
@@ -1423,6 +1515,11 @@ function init() {
 generateBtn.addEventListener("click", refreshIssue);
 shuffleTop.addEventListener("click", refreshIssue);
 copyBtn.addEventListener("click", copyIssue);
+clearSavedBtn.addEventListener("click", () => {
+  saveSavedQuotes([]);
+  renderSavedQuotes();
+  renderQuotes(window.currentIssue || []);
+});
 tabButtons.forEach((button) => {
   button.addEventListener("click", () => switchCollection(button.dataset.collection));
 });
