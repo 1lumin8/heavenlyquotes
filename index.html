@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Words of the Day</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="masthead">
+      <nav class="topbar" aria-label="Site navigation">
+        <a class="brand" href="#">
+          <span>Words of the Day</span>
+        </a>
+        <div class="nav-actions">
+          <span id="issueDate"></span>
+          <button class="ghost-button" id="shuffleTop" type="button">Refresh issue</button>
+        </div>
+      </nav>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="tabs" role="tablist" aria-label="Quote collections">
+            <button class="active" id="jssTab" data-collection="jss" role="tab" aria-selected="true" type="button">
+              JSS Quotes
+            </button>
+            <button id="heavenlyYeastTab" data-collection="heavenlyYeast" role="tab" aria-selected="false" type="button">
+              Heavenly Yeast Quotes
+            </button>
+          </div>
+          <h1 id="pageTitle">JSS Quotes</h1>
+          <div class="hero-actions">
+            <button class="primary-button" id="generateBtn" type="button">Generate 5 quotes</button>
+            <button class="secondary-button" id="copyBtn" type="button">Copy issue</button>
+          </div>
+        </div>
+      </section>
+    </header>
+
+    <main>
+      <section class="issue-panel" aria-labelledby="issueTitle">
+        <div class="issue-header">
+          <div>
+            <p class="eyebrow" id="issueEyebrow">Today's issue</p>
+            <h2 id="issueTitle">Random JSS Quotes</h2>
+          </div>
+          <div class="issue-meta">
+            <span id="categoryCount">0 categories</span>
+            <span>5 quotes</span>
+          </div>
+        </div>
+
+        <div class="quote-grid" id="quoteGrid" aria-live="polite"></div>
+      </section>
+
+      <aside class="category-strip" aria-label="Available quote categories">
+        <div>
+          <p class="eyebrow">Categories in the mix</p>
+          <h2 id="sourceTitle">Dashboard sources</h2>
+        </div>
+        <div class="category-pills" id="categoryPills"></div>
+      </aside>
+    </main>
+
+    <template id="quoteTemplate">
+      <article class="quote-card">
+        <div class="quote-card-top">
+          <span class="category"></span>
+          <span class="source"></span>
+        </div>
+        <blockquote></blockquote>
+      </article>
+    </template>
+
+    <script src="script.js?v=7"></script>
+  </body>
+</html>
