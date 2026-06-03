@@ -1,89 +1,918 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Words of the Day</title>
-    <link rel="stylesheet" href="styles.css">
-  </head>
-  <body>
-    <header class="masthead">
-      <nav class="topbar" aria-label="Site navigation">
-        <a class="brand" href="#">
-          <span>Words of the Day</span>
-        </a>
-        <div class="nav-actions">
-          <span id="issueDate"></span>
-          <button class="ghost-button" id="shuffleTop" type="button">Refresh issue</button>
-        </div>
-      </nav>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SSN Book Quote Generator</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f4ee;
+      --ink: #1e2420;
+      --muted: #68706a;
+      --line: #d9d0bf;
+      --green: #315a46;
+      --blue: #284c72;
+      --gold: #b97a2b;
+      --red: #8d3f37;
+      --white: #fffdf8;
+      --shadow: 0 18px 55px rgba(39, 34, 24, 0.14);
+    }
 
-      <section class="hero">
-        <div class="hero-copy">
-          <div class="tabs" role="tablist" aria-label="Quote collections">
-            <button class="active" id="jssTab" data-collection="jss" role="tab" aria-selected="true" type="button">
-              JSS Quotes
-            </button>
-            <button id="heavenlyYeastTab" data-collection="heavenlyYeast" role="tab" aria-selected="false" type="button">
-              Heavenly Yeast Quotes
-            </button>
-          </div>
-          <h1 id="pageTitle">JSS Quotes</h1>
-          <div class="hero-actions">
-            <button class="primary-button" id="generateBtn" type="button">Generate 5 quotes</button>
-            <button class="secondary-button" id="copyBtn" type="button">Copy issue</button>
-          </div>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(90deg, rgba(49, 90, 70, 0.08), transparent 28%, rgba(185, 122, 43, 0.08)),
+        var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .shell {
+      width: min(1160px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px 0 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .view-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 16px 0 22px;
+    }
+
+    .tab-button {
+      min-height: 38px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, 0.72);
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .tab-button.active {
+      border-color: var(--green);
+      background: var(--green);
+      color: white;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 1px solid var(--ink);
+      border-radius: 8px;
+      background: var(--white);
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.35rem, 2.2vw, 2.2rem);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .subhead {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .generate {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 44px;
+      padding: 0 18px;
+      border: 1px solid var(--green);
+      border-radius: 8px;
+      background: var(--green);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(49, 90, 70, 0.2);
+      white-space: nowrap;
+    }
+
+    .generate:active {
+      transform: translateY(1px);
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 22px;
+      align-items: stretch;
+      padding: 26px 0;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, 0.75);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .book-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .book-source {
+      display: grid;
+      align-content: space-between;
+      gap: 18px;
+      min-height: 150px;
+      padding: 18px;
+      border-right: 1px solid rgba(30, 36, 32, 0.12);
+    }
+
+    .book-source:last-child {
+      border-right: 0;
+    }
+
+    .book-source h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 1rem;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .book-source p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .book-source strong {
+      display: block;
+      color: var(--accent);
+      font-size: 1.9rem;
+      line-height: 1;
+      font-weight: 800;
+    }
+
+    .book-source .source-label {
+      width: fit-content;
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: rgba(30, 36, 32, 0.06);
+      font-size: 0.78rem;
+      color: var(--ink);
+    }
+
+    .status {
+      display: grid;
+      align-content: center;
+      gap: 14px;
+      padding: 22px;
+    }
+
+    .status-label {
+      width: fit-content;
+      padding: 5px 8px;
+      border: 1px solid rgba(40, 76, 114, 0.28);
+      border-radius: 6px;
+      color: var(--blue);
+      background: rgba(40, 76, 114, 0.08);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .status p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 1rem;
+    }
+
+    .quote-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .quote-card {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 390px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      box-shadow: 0 12px 35px rgba(39, 34, 24, 0.09);
+      overflow: hidden;
+    }
+
+    .quote-card.unavailable {
+      background: rgba(255, 253, 248, 0.72);
+    }
+
+    .quote-head {
+      min-height: 82px;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .book-number {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-size: 0.77rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .book-title {
+      margin: 0;
+      font-size: 0.98rem;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .quote {
+      display: flex;
+      align-items: flex-start;
+      min-height: 126px;
+      padding: 22px 18px;
+      font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+      font-size: 1.02rem;
+      line-height: 1.72;
+      word-break: keep-all;
+    }
+
+    .quote p {
+      margin: 0;
+    }
+
+    .quote-note {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .quote-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .quote-foot span {
+      min-width: 0;
+    }
+
+    .save-button,
+    .remove-button {
+      min-height: 32px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    .save-button.saved {
+      border-color: rgba(49, 90, 70, 0.4);
+      background: rgba(49, 90, 70, 0.1);
+      color: var(--green);
+    }
+
+    .remove-button {
+      color: var(--red);
+    }
+
+    .search-panel {
+      margin: 22px 0 0;
+      padding: 18px;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    .search-input {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      color: var(--ink);
+      font: inherit;
+      padding: 0 13px;
+    }
+
+    .search-button {
+      min-height: 44px;
+      padding: 0 16px;
+      border: 1px solid var(--blue);
+      border-radius: 8px;
+      background: var(--blue);
+      color: white;
+      cursor: pointer;
+      font: inherit;
+      white-space: nowrap;
+    }
+
+    .search-summary {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .search-results {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .search-result {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      overflow: hidden;
+    }
+
+    .search-result-actions,
+    .saved-actions {
+      display: flex;
+      justify-content: flex-end;
+      padding: 0 14px 14px;
+    }
+
+    .search-result-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .search-result-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .search-result-meta {
+      color: var(--muted);
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    .search-snippet {
+      margin: 0;
+      padding: 14px;
+      color: var(--ink);
+      font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+      font-size: 0.96rem;
+      line-height: 1.65;
+      word-break: keep-all;
+    }
+
+    mark {
+      border-radius: 4px;
+      background: rgba(185, 122, 43, 0.22);
+      color: inherit;
+      padding: 0 2px;
+    }
+
+    .saved-panel {
+      padding: 18px;
+    }
+
+    .saved-summary {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .saved-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .saved-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      overflow: hidden;
+    }
+
+    .saved-card-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .saved-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: 0.95rem;
+      line-height: 1.35;
+    }
+
+    .saved-meta {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .saved-text {
+      margin: 0;
+      padding: 14px;
+      font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+      font-size: 0.98rem;
+      line-height: 1.68;
+      word-break: keep-all;
+    }
+
+    .accent-green { --accent: var(--green); }
+    .accent-blue { --accent: var(--blue); }
+    .accent-gold { --accent: var(--gold); }
+    .accent-red { --accent: var(--red); }
+
+    @media (max-width: 920px) {
+      .meta,
+      .quote-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .quote-card {
+        min-height: 220px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .generate {
+        width: 100%;
+      }
+
+      .search-row {
+        grid-template-columns: 1fr;
+      }
+
+      .book-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .book-source {
+        border-right: 0;
+        border-bottom: 1px solid rgba(30, 36, 32, 0.12);
+      }
+
+      .book-source:last-child {
+        border-bottom: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">SSN</div>
+        <div>
+          <h1>Book Quote Generator</h1>
+          <p class="subhead">Three books. Three short excerpts. One click.</p>
         </div>
-      </section>
+      </div>
+      <button class="generate" id="generateBtn" type="button" aria-label="Generate three random quotes">
+        <span aria-hidden="true">↻</span>
+        Generate quotes
+      </button>
     </header>
 
-    <main>
-      <section class="issue-panel" aria-labelledby="issueTitle">
-        <div class="issue-header">
-          <div>
-            <p class="eyebrow" id="issueEyebrow">Today's issue</p>
-            <h2 id="issueTitle">Random JSS Quotes</h2>
-          </div>
-          <div class="issue-meta">
-            <span id="categoryCount">0 categories</span>
-            <span>5 quotes</span>
-          </div>
-        </div>
+    <nav class="view-tabs" aria-label="App views">
+      <button class="tab-button active" type="button" data-view="generateView">Generate</button>
+      <button class="tab-button" type="button" data-view="searchView">Search</button>
+      <button class="tab-button" type="button" data-view="savedView">Saved <span id="savedCount">0</span></button>
+    </nav>
 
-        <div class="quote-grid" id="quoteGrid" aria-live="polite"></div>
+    <section class="view active" id="generateView">
+      <section class="quote-grid" id="quoteGrid" aria-live="polite"></section>
+
+      <section class="meta" aria-label="Quote sources">
+        <div class="panel book-strip" id="bookStrip"></div>
+
+        <aside class="panel status">
+          <span class="status-label">Ready</span>
+          <p id="drawStatus">Click the button to draw one quote from each PDF.</p>
+        </aside>
       </section>
+    </section>
 
-      <section class="saved-panel" aria-labelledby="savedTitle">
-        <div class="saved-header">
-          <div>
-            <p class="eyebrow">Saved</p>
-            <h2 id="savedTitle">Saved quotes</h2>
-          </div>
-          <button class="secondary-button compact-button" id="clearSavedBtn" type="button">Clear saved</button>
-        </div>
-        <div class="saved-list" id="savedList"></div>
+    <section class="view" id="searchView">
+      <section class="panel search-panel" aria-label="Search OCR text">
+        <form class="search-row" id="searchForm">
+          <input class="search-input" id="searchInput" type="search" placeholder="Search the OCR text" autocomplete="off">
+          <button class="search-button" type="submit">Search</button>
+        </form>
+        <p class="search-summary" id="searchSummary">Search all OCR pages from the three scanned books.</p>
+        <div class="search-results" id="searchResults" aria-live="polite"></div>
       </section>
+    </section>
 
-      <aside class="category-strip" aria-label="Available quote categories">
-        <div>
-          <p class="eyebrow">Categories in the mix</p>
-          <h2 id="sourceTitle">Dashboard sources</h2>
-        </div>
-        <div class="category-pills" id="categoryPills"></div>
-      </aside>
-    </main>
+    <section class="view" id="savedView">
+      <section class="panel saved-panel" aria-label="Saved quotes">
+        <p class="saved-summary" id="savedSummary">No saved quotes yet.</p>
+        <div class="saved-list" id="savedList" aria-live="polite"></div>
+      </section>
+    </section>
+  </main>
 
-    <template id="quoteTemplate">
-      <article class="quote-card">
-        <div class="quote-card-top">
-          <span class="category"></span>
-          <span class="source"></span>
-          <button class="save-quote" type="button" aria-label="Save quote">Save</button>
-        </div>
-        <blockquote></blockquote>
-      </article>
-    </template>
+  <script src="quote-bank.js?v=saved-search-20260603"></script>
+  <script src="search-index.js?v=20260603"></script>
+  <script>
+    const quoteBank = window.SSN_QUOTE_BANK || { mode: "missing", books: [] };
+    const searchIndex = window.SSN_SEARCH_INDEX || { pages: [] };
+    const books = quoteBank.books;
 
-    <script src="script.js?v=9"></script>
-  </body>
+    const tabs = document.querySelectorAll(".tab-button");
+    const views = document.querySelectorAll(".view");
+    const grid = document.querySelector("#quoteGrid");
+    const bookStrip = document.querySelector("#bookStrip");
+    const button = document.querySelector("#generateBtn");
+    const statusText = document.querySelector("#drawStatus");
+    const searchForm = document.querySelector("#searchForm");
+    const searchInput = document.querySelector("#searchInput");
+    const searchSummary = document.querySelector("#searchSummary");
+    const searchResults = document.querySelector("#searchResults");
+    const savedCount = document.querySelector("#savedCount");
+    const savedSummary = document.querySelector("#savedSummary");
+    const savedList = document.querySelector("#savedList");
+    let lastDraw = [];
+    let savedItems = loadSavedItems();
+
+    function loadSavedItems() {
+      try {
+        return JSON.parse(localStorage.getItem("ssnSavedQuotes") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function persistSavedItems() {
+      localStorage.setItem("ssnSavedQuotes", JSON.stringify(savedItems));
+    }
+
+    function itemId(item) {
+      let hash = 0;
+      const raw = `${item.source}|${item.page || ""}|${item.text}`;
+      for (let i = 0; i < raw.length; i++) {
+        hash = ((hash << 5) - hash + raw.charCodeAt(i)) | 0;
+      }
+      return `saved-${Math.abs(hash)}`;
+    }
+
+    function isSaved(item) {
+      const id = item.id || itemId(item);
+      return savedItems.some((saved) => saved.id === id);
+    }
+
+    function saveItem(item) {
+      const normalized = { ...item, id: item.id || itemId(item), savedAt: new Date().toISOString() };
+      if (!isSaved(normalized)) {
+        savedItems = [normalized, ...savedItems];
+        persistSavedItems();
+        renderSavedItems();
+      }
+      refreshSaveButtons();
+    }
+
+    function removeSavedItem(id) {
+      savedItems = savedItems.filter((item) => item.id !== id);
+      persistSavedItems();
+      renderSavedItems();
+      refreshSaveButtons();
+    }
+
+    function switchView(viewId) {
+      tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.view === viewId));
+      views.forEach((view) => view.classList.toggle("active", view.id === viewId));
+      if (viewId === "savedView") renderSavedItems();
+      if (viewId === "searchView") searchInput.focus();
+    }
+
+    function renderBookStrip() {
+      bookStrip.innerHTML = books.map((book, index) => `
+        <section class="book-source ${book.accent}">
+          <span class="source-label">Book ${index + 1}</span>
+          <h2>${book.title}</h2>
+          <p><strong>${book.quotes.length.toLocaleString()}</strong>cleaned OCR excerpts available</p>
+        </section>
+      `).join("");
+    }
+
+    function pickQuote(book, index) {
+      if (book.quotes.length === 0) return null;
+      if (book.quotes.length === 1) return book.quotes[0];
+
+      let quote = book.quotes[Math.floor(Math.random() * book.quotes.length)];
+      if (lastDraw[index] && quote.text === lastDraw[index].text) {
+        const remaining = book.quotes.filter((item) => item.text !== lastDraw[index].text);
+        quote = remaining[Math.floor(Math.random() * remaining.length)];
+      }
+      return quote;
+    }
+
+    function formatQuote(text) {
+      let cleaned = text
+        .replace(/\s+/g, " ")
+        .replace(/\s+([.!?])/g, "$1")
+        .replace(/[:;]+(?=\s|$)/g, ".")
+        .replace(/([.!?]){2,}/g, "$1")
+        .trim();
+
+      if (cleaned && !/[.!?。]$/.test(cleaned)) {
+        cleaned += ".";
+      }
+
+      return cleaned;
+    }
+
+    function saveButton(item) {
+      const normalized = { ...item, id: item.id || itemId(item) };
+      const saved = isSaved(normalized);
+      return `<button class="save-button${saved ? " saved" : ""}" type="button" data-save='${escapeHtml(JSON.stringify(normalized))}'>${saved ? "Saved" : "Save"}</button>`;
+    }
+
+    function renderQuotes() {
+      const now = new Date();
+      const cards = books.map((book, index) => {
+        const quote = pickQuote(book, index);
+        lastDraw[index] = quote;
+        const unavailable = quote === null;
+        const unavailableText = quoteBank.mode === "needs_ocr"
+          ? "Full-PDF OCR has not been generated yet for this scanned PDF."
+          : "No body-text quote was found for this PDF.";
+        const body = unavailable
+          ? `<p class="quote-note">${unavailableText}</p>`
+          : `<p>“${formatQuote(quote.text)}”</p>`;
+        const item = quote ? {
+          kind: "generated",
+          title: book.title,
+          source: book.source,
+          page: quote.page || null,
+          text: formatQuote(quote.text)
+        } : null;
+
+        return `
+          <article class="quote-card ${book.accent}${unavailable ? " unavailable" : ""}">
+            <div class="quote-head">
+              <p class="book-number">Book ${index + 1}</p>
+              <h2 class="book-title">${book.title}</h2>
+            </div>
+            <div class="quote">
+              ${body}
+            </div>
+            <footer class="quote-foot">
+              <span>${book.source}${quote && quote.page ? ` · Page ${quote.page}` : ""}</span>
+              ${item ? saveButton(item) : "<span>Skipped</span>"}
+            </footer>
+          </article>
+        `;
+      });
+
+      grid.innerHTML = cards.join("");
+      const totalQuotes = books.reduce((sum, book) => sum + book.quotes.length, 0);
+      if (quoteBank.mode === "needs_ocr") {
+        statusText.textContent = "Ready for the full-PDF quote bank. OCR generation is still needed.";
+      } else {
+        statusText.textContent = `Generated from ${totalQuotes} OCR excerpts ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+      }
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function normalizeSearch(value) {
+      return value.trim().replace(/\s+/g, " ").toLowerCase();
+    }
+
+    function searchTerms(query) {
+      return normalizeSearch(query)
+        .split(" ")
+        .filter((term) => term.length >= 2);
+    }
+
+    function scorePage(page, query, terms) {
+      const text = page.text.toLowerCase();
+      let score = 0;
+      if (query.length >= 2 && text.includes(query)) score += 12;
+      terms.forEach((term) => {
+        const matches = text.match(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"));
+        if (matches) score += Math.min(matches.length, 8);
+      });
+      return score;
+    }
+
+    function makeSnippet(text, query, terms) {
+      const lower = text.toLowerCase();
+      const firstNeedle = [query, ...terms].find((term) => term && lower.includes(term));
+      const at = firstNeedle ? lower.indexOf(firstNeedle) : 0;
+      const start = Math.max(0, at - 110);
+      const end = Math.min(text.length, at + 260);
+      let snippet = `${start > 0 ? "..." : ""}${text.slice(start, end)}${end < text.length ? "..." : ""}`;
+      snippet = snippet
+        .replace(/(^|\s)\d{1,4}\s+(?=[가-힣])/g, "$1")
+        .replace(/\([^)]*\d+[^)]*\)/g, " ")
+        .replace(/\[[^\]]*\d+[^\]]*\]/g, " ")
+        .replace(/(?:마|막|눅|요|행|계|히|롬|창|출|고전|고후|벧전|벧후|살전|살후)\s*[:.]\s*[\d\s,\\-~]*/g, " ")
+        .replace(/\d+\s*[-~]\s*\d+\s*절|\d+\s*절/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const needles = [query, ...terms].filter(Boolean).sort((a, b) => b.length - a.length);
+      needles.forEach((needle) => {
+        const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        snippet = snippet.replace(new RegExp(escaped, "gi"), (match) => `[[[${match}]]]`);
+      });
+      return escapeHtml(snippet)
+        .replaceAll("[[[", "<mark>")
+        .replaceAll("]]]", "</mark>");
+    }
+
+    function makePlainSnippet(text, query, terms) {
+      const container = document.createElement("div");
+      container.innerHTML = makeSnippet(text, query, terms);
+      let snippet = container.textContent || "";
+      if (snippet && !/[.!?。]$/.test(snippet)) snippet += ".";
+      return snippet;
+    }
+
+    function runSearch(query) {
+      const normalized = normalizeSearch(query);
+      const terms = searchTerms(query);
+
+      if (normalized.length < 2) {
+        searchSummary.textContent = `Search all ${searchIndex.pages.length.toLocaleString()} OCR pages from the three scanned books.`;
+        searchResults.innerHTML = "";
+        return;
+      }
+
+      const matches = searchIndex.pages
+        .map((page) => ({ page, score: scorePage(page, normalized, terms) }))
+        .filter((item) => item.score > 0)
+        .sort((a, b) => b.score - a.score || a.page.source.localeCompare(b.page.source) || a.page.page - b.page.page)
+        .slice(0, 12);
+
+      searchSummary.textContent = matches.length
+        ? `Showing ${matches.length} strongest matches for "${query}".`
+        : `No OCR matches found for "${query}".`;
+
+      searchResults.innerHTML = matches.map(({ page }) => {
+        const snippet = makePlainSnippet(page.text, normalized, terms);
+        const item = {
+          kind: "search",
+          title: page.title,
+          source: page.source,
+          page: page.page,
+          text: snippet
+        };
+
+        return `
+          <article class="search-result ${page.accent}">
+            <div class="search-result-head">
+              <h3 class="search-result-title">${escapeHtml(page.title)}</h3>
+              <span class="search-result-meta">${escapeHtml(page.source)} · Page ${page.page}</span>
+            </div>
+            <p class="search-snippet">${makeSnippet(page.text, normalized, terms)}</p>
+            <div class="search-result-actions">${saveButton(item)}</div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderSavedItems() {
+      savedCount.textContent = savedItems.length.toLocaleString();
+      savedSummary.textContent = savedItems.length
+        ? `${savedItems.length.toLocaleString()} saved quote${savedItems.length === 1 ? "" : "s"}.`
+        : "No saved quotes yet.";
+
+      savedList.innerHTML = savedItems.map((item) => `
+        <article class="saved-card">
+          <div class="saved-card-head">
+            <h3 class="saved-title">${escapeHtml(item.title)}</h3>
+            <span class="saved-meta">${escapeHtml(item.source)}${item.page ? ` · Page ${item.page}` : ""}</span>
+          </div>
+          <p class="saved-text">“${escapeHtml(formatQuote(item.text))}”</p>
+          <div class="saved-actions">
+            <button class="remove-button" type="button" data-remove="${escapeHtml(item.id)}">Remove</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function refreshSaveButtons() {
+      document.querySelectorAll(".save-button").forEach((save) => {
+        const item = JSON.parse(save.dataset.save);
+        const saved = isSaved(item);
+        save.classList.toggle("saved", saved);
+        save.textContent = saved ? "Saved" : "Save";
+      });
+    }
+
+    button.addEventListener("click", renderQuotes);
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => switchView(tab.dataset.view));
+    });
+
+    button.addEventListener("click", () => switchView("generateView"));
+
+    document.addEventListener("click", (event) => {
+      const save = event.target.closest(".save-button");
+      if (save) {
+        saveItem(JSON.parse(save.dataset.save));
+        return;
+      }
+
+      const remove = event.target.closest(".remove-button");
+      if (remove) {
+        removeSavedItem(remove.dataset.remove);
+      }
+    });
+
+    searchForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      runSearch(searchInput.value);
+    });
+
+    searchInput.addEventListener("input", () => {
+      if (searchInput.value.trim().length === 0) runSearch("");
+    });
+
+    renderBookStrip();
+    renderQuotes();
+    renderSavedItems();
+  </script>
+</body>
 </html>
